@@ -1,6 +1,7 @@
 #include "display.h"
 #include <GL\glew.h>
 #include <iostream>
+#include <assert.h>
 
 #define TRAPPED_MOUSE 1
 
@@ -36,6 +37,15 @@ namespace gemini { namespace util {
 		for (unsigned int i = 0; i < 256; i++){
 			m_keystate[i] = false;
 		}
+		
+		m_mouse_x = m_width / 2;
+		m_mouse_y = m_height / 2;
+		m_mouse_old_x = m_width / 2;
+		m_mouse_old_y = m_height / 2;
+
+		SDL_SetWindowFullscreen(m_window, SDL_TRUE);
+
+		//SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 
 #if TRAPPED_MOUSE
 		SDL_ShowCursor(SDL_DISABLE);
@@ -54,25 +64,8 @@ namespace gemini { namespace util {
 	}
 
 	bool firstframe = true;
-	void Display::update() {
-		
-#if TRAPPED_MOUSE
-		SDL_GetMouseState(&m_mouse_x, &m_mouse_y);
-		m_mouse_old_x = m_width / 2;
-		m_mouse_old_y = m_height / 2;
-		SDL_WarpMouseInWindow(m_window, m_width / 2, m_height / 2);
-#else
-		m_mouse_old_x = m_mouse_x;
-		m_mouse_old_y = m_mouse_y;
-		SDL_GetMouseState(&m_mouse_x, &m_mouse_y);
-		// In order to avoid wrong dx and dy on startup.
-		if (firstframe) {
-			m_mouse_old_x = m_mouse_x;
-			m_mouse_old_y = m_mouse_y;
-			firstframe = false;
-		}
-#endif
-
+	void Display::update() 
+	{
 		m_hasResized = false;
 		SDL_GL_SwapWindow(m_window);
 		SDL_Event e;
@@ -96,8 +89,13 @@ namespace gemini { namespace util {
 				else
 					m_keystate[keycode] = false;
 				break; }
+			case SDL_MOUSEMOTION:
+				m_mouse_x = e.motion.x;
+				m_mouse_y = e.motion.y;
+				break;
 			}
 		}
+		SDL_WarpMouseInWindow(m_window, m_width / 2, m_height / 2);
 		int oldw = m_width, oldh = m_height;
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
 		if (oldw != m_width || oldh != m_height){
@@ -105,12 +103,14 @@ namespace gemini { namespace util {
 		}
 	}
 
-	void Display::getMousePosition(int &x, int &y){
+	void Display::getMousePosition(int &x, int &y)
+	{
 		x = m_mouse_x;
 		y = m_mouse_y;
 	}
 	
-	void Display::getMouseSpeed(int &dx, int &dy){
+	void Display::getMouseSpeed(int &dx, int &dy)
+	{
 		dx = m_mouse_x - m_mouse_old_x;
 		dy = m_mouse_y - m_mouse_old_y;
 	}
@@ -128,6 +128,11 @@ namespace gemini { namespace util {
 		unsigned int keycode = SDL_GetScancodeFromKey(key);
 		if (m_keystate[keycode]) return true;
 		return false;
+	}
+
+	void Display::maximizeWindow(){
+		SDL_MaximizeWindow(m_window);
+
 	}
 
 } }

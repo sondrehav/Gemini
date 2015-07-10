@@ -4,17 +4,15 @@
 #include <GL/glew.h>
 #include "shader.h"
 #include "vertex.h"
-
+#include "worldPosition.h"
 
 namespace gemini {
 	namespace graphics{
 
-		class Mesh
+		class WorldPosition
 		{
 		public:
-			glm::vec3 m_position = glm::vec3(0.0f, 0.0f, 0.0f);
-			glm::vec3 m_rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-			glm::vec3 m_size = glm::vec3(1.0f, 1.0f, 1.0f);
+			WorldPosition worldPosition;
 		private:
 			GLuint m_VAO, m_VBO, m_IBO;
 			Shader *m_shader;

@@ -1,14 +1,12 @@
 #include <glm/gtc/matrix_transform.hpp>
-#include "mesh.h"
 #include <iostream>
-#include <assimp\postprocess.h>
-#include "vertex.h"
+#include "mesh.h"
 
 namespace gemini { namespace graphics{
 
-	Mesh::Mesh()
+	Mesh::Mesh(Shader *shader)
 	{
-		
+		m_shader = shader;
 	}
 
 	Mesh::~Mesh()
@@ -16,113 +14,82 @@ namespace gemini { namespace graphics{
 
 	}
 
-	bool Mesh::loadScene(std::string filepath)
-	{
-		Assimp::Importer importer;
-		const aiScene* pScene = importer.ReadFile(filepath.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
-		bool success;
-		if (pScene) {
-			std::cout << "Model '" << filepath << "' loaded." << std::endl;
-			success = true;
-		}
-		else {
-			std::cerr << "Error parsing model '" << filepath << "'." << std::endl;
-			success = false;
-		}
-		return success;
-	}
+	Mesh Mesh::createInstance(){
 
-	bool Mesh::initFromScene(const aiScene* pScene, const std::string& filename)
-	{
-		m_meshes.resize(pScene->mNumMeshes);
-		m_textures.resize(pScene->mNumMaterials);
-		for (int i = 0; i < m_meshes.size(); i++){
-			const aiMesh* paiMesh = pScene->mMeshes[i];
-			initMesh(i, paiMesh);
-		}
-		return initMaterials(pScene, filename);
-	}
+		Mesh newMesh(this->m_shader);
+		newMesh.m_IBO = this->m_IBO;
+		newMesh.m_VBO = this->m_VBO;
+		newMesh.m_VAO = this->m_VAO;
+		newMesh.m_indicesCount = this->m_indicesCount;
+		newMesh.m_verteciesCount = this->m_verteciesCount;
 
-	void Mesh::initMesh(unsigned int index, const aiMesh* paiMesh)
-	{
-		const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
-		m_meshes[index].m_materialIndex = paiMesh->mMaterialIndex;
-		std::vector<Vertex> vertecies;
-		for (unsigned int i = 0; i < paiMesh->mNumVertices; i++) {
-			const aiVector3D* pos = &(paiMesh->mVertices[i]);
-			const aiVector3D* norm = &(paiMesh->mNormals[i]);
-			const aiVector3D* texcoord = paiMesh->HasTextureCoords(0) ? &(paiMesh->mTextureCoords[0][i]) : &Zero3D;
-			Vertex v(glm::vec3(pos->x, pos->y, pos->z), glm::vec3(norm->x, norm->y, norm->z), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(texcoord->x, texcoord->y));
-			vertecies.push_back(v);
-		}
-		std::vector<GLuint> indices;
-		for (unsigned int i = 0; i < paiMesh->mNumFaces; i++){
-			const aiFace& face = paiMesh->mFaces[i];
-			assert(face.mNumIndices == 3);
-			indices.push_back(face.mIndices[0]);
-			indices.push_back(face.mIndices[1]);
-			indices.push_back(face.mIndices[2]);
-		}
-		m_meshes[index].init(vertecies, indices);
-	}
-	
-	bool Mesh::initMaterials(const aiScene* pScene, const std::string& Filename)
-	{
-		for (unsigned int i = 0; i < pScene->mNumMaterials; i++) {
-			const aiMaterial* pMaterials = pScene->mMaterials[i];
-		}
-		return true;
-	}
+		memcpy(&newMesh.m_position, &(this->m_position), sizeof(glm::vec3));
+		memcpy(&newMesh.m_rotation, &(this->m_rotation), sizeof(glm::vec3));
+		memcpy(&newMesh.m_size, &(this->m_size), sizeof(glm::vec3));
 
-	void Mesh::clear()
-	{
+		return newMesh;
 
 	}
 
-	Mesh::MeshEntry::MeshEntry(){}
-	Mesh::MeshEntry::~MeshEntry(){}
-
-	bool Mesh::MeshEntry::init(const std::vector<Vertex> &vertecies, const std::vector<GLuint> &indices)
+	bool Mesh::loadData(const Vertex *vertecies, unsigned int verteciesCount, const GLuint *indices, unsigned int indicesCount)
 	{
 
-		glGenVertexArrays(1, &this->m_VAO);
+		m_indicesCount = indicesCount;
+		m_verteciesCount = verteciesCount;
+
+		glGenVertexArrays(1, &m_VAO);
 		glBindVertexArray(m_VAO);
 
-		glGenBuffers(1, &this->m_VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, this->m_VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertecies.size(), &vertecies, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, texcoord));
+		glGenBuffers(1, &m_VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * verteciesCount, vertecies, GL_STATIC_DRAW);
 
-		glGenBuffers(1, &this->m_IBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_IBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*indices.size(), &indices[0], GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, position))); // Vertex
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, normal))); // Normal
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, color))); // Color
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, texcoord))); // Texcoord
+
+		glGenBuffers(1, &m_IBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesCount * sizeof(GLuint), indices, GL_STATIC_DRAW);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		glBindVertexArray(0);
 
+		GLenum error = glGetError();
+		if (error != GL_NO_ERROR){
+			std::cout << "OpenGL error on model initializing: " << error << std::endl;
+			return false;
+		}
 		return true;
 
 	}
 
-	void Mesh::render(Shader &shader){
+	void Mesh::render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix){
 
-		shader.Bind();
-		glm::mat4x4 pr_matrix = glm::perspective(60.0f, 1200.0f / 800.0f, 0.01f, 1000.0f);
-		glm::mat4x4 vw_matrix = glm::translate(glm::mat4x4(1.0f), glm::vec3(0.0f,0.0f,-100.0f));
-		shader.SetUniformMat4("pr_matrix", pr_matrix);
-		shader.SetUniformMat4("vw_matrix", vw_matrix);
-		for (unsigned int i = 0; i < m_meshes.size(); i++){
-			MeshEntry mesh = m_meshes[i];
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.m_IBO);
-			glDrawElements(GL_TRIANGLES, mesh.m_count, GL_UNSIGNED_INT, 0);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		}
-		shader.Unbind();
+		md_matrix = glm::mat4x4(1.0f);
+		md_matrix = glm::translate(md_matrix, m_position);
+		md_matrix = glm::rotate(md_matrix, m_rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+		md_matrix = glm::rotate(md_matrix, m_rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+		md_matrix = glm::rotate(md_matrix, m_rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+		md_matrix = glm::scale(md_matrix, m_size);
+
+		m_shader->Bind();
+		m_shader->SetUniformMat4("pr_matrix", pr_matrix);
+		m_shader->SetUniformMat4("vw_matrix", vw_matrix);
+		m_shader->SetUniformMat4("md_matrix", md_matrix);
+
+		glBindVertexArray(m_VAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
+		glDrawElements(GL_TRIANGLES, m_indicesCount, GL_UNSIGNED_INT, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+
+		m_shader->Unbind();
 
 	}
 

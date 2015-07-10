@@ -14,6 +14,7 @@ namespace gemini { namespace util {
 		inline bool isCloseRequested() const { return m_isClosing; }
 		inline bool hasResized() const { return m_hasResized; }
 		inline void close() { m_isClosing = true; }
+		void maximizeWindow();
 		void getMousePosition(int &x, int &y);
 		void getMouseSpeed(int &dx, int &dy);
 		virtual ~Display();
