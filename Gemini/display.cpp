@@ -43,7 +43,7 @@ namespace gemini { namespace util {
 		m_mouse_old_x = m_width / 2;
 		m_mouse_old_y = m_height / 2;
 
-		SDL_SetWindowFullscreen(m_window, SDL_TRUE);
+		//SDL_SetWindowFullscreen(m_window, SDL_TRUE);
 
 		//SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 

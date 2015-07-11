@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <time.h>
+#include "texture.h"
 #include "camera.h"
 
 #define WIDTH 1280
@@ -16,7 +17,7 @@
 #define YAW camera->m_rotation.y
 #define PITCH camera->m_rotation.x
 
-int main(int argc, char* args[]){
+int main(int argc, char** argv){
 	
 	const float PI = glm::pi<float>();
 
@@ -33,6 +34,9 @@ int main(int argc, char* args[]){
 
 	Shader shader("res/testShader.vs", "res/testShader.fs");
 	Camera* camera = new Camera();
+	Texture* texture = new Texture();
+	texture->load("res/test.png");
+	texture->unbind();
 
 	GLuint m_VAO, m_VBO, m_IBO;
 
@@ -123,9 +127,11 @@ int main(int argc, char* args[]){
 			projection = glm::perspective(60.0f, aspect, 0.01f, 1000.0f);
 		}
 		
+		texture->bind();
 		for (Mesh m : meshes){
 			m.render(projection, view);
 		}
+		texture->unbind();
 
 #if 0
 		shader.SetUniformMat4("md_matrix", glm::mat4x4(1.0f));
@@ -143,6 +149,7 @@ int main(int argc, char* args[]){
 #endif
 
 		display.update();
+
 
 		GLenum error = glGetError();
 		if (error != GL_NO_ERROR){

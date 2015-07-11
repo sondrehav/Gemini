@@ -6,6 +6,7 @@ layout ( location = 2 ) in vec3 in_color;
 layout ( location = 3 ) in vec2 in_texcoord;
 
 out vec3 pass_color;
+out vec2 pass_texcoord;
 
 uniform mat4 pr_matrix = mat4(1.0);
 uniform mat4 vw_matrix = mat4(1.0);
@@ -15,4 +16,5 @@ void main()
 {
 	gl_Position = pr_matrix * vw_matrix * md_matrix * vec4(in_vertex, 1.0);
 	pass_color = in_color;
+	pass_texcoord = in_texcoord;
 }

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <GL\glew.h>
+#include "SOIL/SOIL.h"
 
 namespace gemini {
 	namespace graphics {
@@ -9,7 +10,7 @@ namespace gemini {
 		{
 		public:
 			Texture();
-			bool load(const std::string &filename, GLenum textureTarget = GL_TEXTURE_2D);
+			bool load(const std::string &filename);
 			void bind();
 			void unbind();
 			virtual ~Texture();

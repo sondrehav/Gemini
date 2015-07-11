@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="SOIL">
+      <UniqueIdentifier>{5d19b4af-82e4-4ccb-b59b-e47c7415cf70}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -36,6 +39,18 @@
     <ClCompile Include="texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SOIL\stb_image_aug.c">
+      <Filter>SOIL</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL\SOIL.c">
+      <Filter>SOIL</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL\image_helper.c">
+      <Filter>SOIL</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL\image_DXT.c">
+      <Filter>SOIL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="display.h">
@@ -58,6 +73,24 @@
     </ClInclude>
     <ClInclude Include="texture.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\stbi_DDS_aug_c.h">
+      <Filter>SOIL</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\stbi_DDS_aug.h">
+      <Filter>SOIL</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\stb_image_aug.h">
+      <Filter>SOIL</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\SOIL.h">
+      <Filter>SOIL</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\image_helper.h">
+      <Filter>SOIL</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL\image_DXT.h">
+      <Filter>SOIL</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

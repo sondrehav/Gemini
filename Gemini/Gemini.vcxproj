@@ -85,6 +85,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="SOIL\image_DXT.c" />
+    <ClCompile Include="SOIL\image_helper.c" />
+    <ClCompile Include="SOIL\SOIL.c" />
+    <ClCompile Include="SOIL\stb_image_aug.c" />
     <ClCompile Include="textLoader.cpp" />
     <ClCompile Include="texture.cpp" />
   </ItemGroup>
@@ -93,6 +97,12 @@
     <ClInclude Include="display.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="SOIL\image_DXT.h" />
+    <ClInclude Include="SOIL\image_helper.h" />
+    <ClInclude Include="SOIL\SOIL.h" />
+    <ClInclude Include="SOIL\stbi_DDS_aug.h" />
+    <ClInclude Include="SOIL\stbi_DDS_aug_c.h" />
+    <ClInclude Include="SOIL\stb_image_aug.h" />
     <ClInclude Include="textLoader.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="vertex.h" />
