@@ -10,12 +10,19 @@
 #include <time.h>
 #include "texture.h"
 #include "camera.h"
+#include "scene.h"
+#include <time.h>
 
 #define WIDTH 1280
 #define HEIGHT 720
 
+#define CLIP_NEAR 50.0f
+#define CLIP_FAR 100000.0f
+
 #define YAW camera->m_rotation.y
 #define PITCH camera->m_rotation.x
+
+#define FRAME_RATE_CAP 60
 
 int main(int argc, char** argv){
 	
@@ -35,55 +42,16 @@ int main(int argc, char** argv){
 	Shader shader("res/testShader.vs", "res/testShader.fs");
 	Camera* camera = new Camera();
 	Texture* texture = new Texture();
-	texture->load("res/test.png");
-	texture->unbind();
-
-	GLuint m_VAO, m_VBO, m_IBO;
-
-	Vertex* vertecies = new Vertex[8]{
-		Vertex(glm::vec3(-.5f, -.5f, .5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
-		Vertex(glm::vec3(-.5f, .5f, .5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f)),
-		Vertex(glm::vec3(.5f, .5f, .5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)),
-		Vertex(glm::vec3(.5f, -.5f, .5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f)),
-		Vertex(glm::vec3(-.5f, -.5f, -.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
-		Vertex(glm::vec3(-.5f, .5f, -.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f)),
-		Vertex(glm::vec3(.5f, .5f, -.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)),
-		Vertex(glm::vec3(.5f, -.5f, -.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f))
-	};
-
-	GLuint* indices = new GLuint[36] {
-		0, 2, 1, 0, 3, 2,
-		4, 3, 0, 4, 7, 3,
-		4, 1, 5, 4, 0, 1,
-		3, 6, 2, 3, 7, 6,
-		1, 6, 5, 1, 2, 6,
-		7, 5, 6, 7, 4, 5
-	};
-
-	unsigned int count = 36;
-	unsigned int verteciesCount = 8;
 	
-	std::vector<Mesh> meshes;
-	Mesh mesh(&shader);
-	mesh.loadData(vertecies, verteciesCount, indices, count);
-
-	delete vertecies;
-	delete indices;
-
-	srand(time(NULL));
-
-	for (int i = 0; i < 10; i++){
-		for (int j = 0; j < 10; j++){
-			Mesh newMesh = mesh.createInstance();
-			newMesh.m_position.x = i;
-			newMesh.m_position.z = j;
-			newMesh.m_size = glm::vec3(0.2f, 0.2f, 0.2f);
-			newMesh.m_rotation.y = glm::radians((float)(rand() % 360));
-			meshes.push_back(newMesh);
-		}
+	Scene* scene = new Scene(&shader);
+	
+	if (!scene->loadScene("res/scene/sponza/sponza_edit.obj"))
+	{
+		std::cerr << "Could not load scene." << std::endl;
 	}
 
-	glm::mat4x4 projection = glm::perspective(70.0f, (float)WIDTH / (float)HEIGHT, 0.01f, 1000.0f);
+
+	glm::mat4x4 projection = glm::perspective(70.0f, (float)WIDTH / (float)HEIGHT, CLIP_NEAR, CLIP_FAR);
 	glm::mat4x4 view;
 
 	glEnable(GL_CULL_FACE);
@@ -92,14 +60,37 @@ int main(int argc, char** argv){
 	glEnable(GL_DEPTH_TEST);
 
 	float mouseSens = 0.001f;
-	float speed = 0.01f;
+	float speed = 10.0f;
+
+	glm::vec3 lightDirection(-0.5f, -0.5f, -0.5f);
 
 	glLineWidth(4.0f);
+	bool wf = false;
+	std::cout << "Starting main loop..." << std::endl;
+	float e = 0.0f;
+
 
 	while (!display.isCloseRequested()){
-		
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		Uint32 time = SDL_GetTicks();
+
+		e += 0.01f;
+		lightDirection.x = cos(e) * 0.5;
+		lightDirection.y = sin(e) * 0.5;
+
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glClearColor(0.0f, 0.15f, 0.3f, 1.0f);
+
+		if (display.isKeyDown(SDLK_F1))
+		{
+			wf = !wf;
+			if (wf) {
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			}
+			else {
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			}
+		}
 
 		if (display.isKeyHold(SDLK_ESCAPE)) display.close();
 		if (display.isKeyHold(SDLK_F11)) display.maximizeWindow();
@@ -118,20 +109,18 @@ int main(int argc, char** argv){
 
 		camera->update();
 		view = camera->getViewMatrix();
+		shader.Bind();
+		shader.SetUniform3f("lightDir", lightDirection.x, lightDirection.y, lightDirection.z);
 
 		if (display.hasResized()) {
 			std::cout << "RESIZE!!" << std::endl;
 			std::cout << display.getWidth() << std::endl;
 			glViewport(0, 0, display.getWidth(), display.getHeight());
 			float aspect = (float)display.getWidth() / (float)display.getHeight();
-			projection = glm::perspective(60.0f, aspect, 0.01f, 1000.0f);
+			projection = glm::perspective(70.0f, aspect, CLIP_NEAR, CLIP_FAR);
 		}
 		
-		texture->bind();
-		for (Mesh m : meshes){
-			m.render(projection, view);
-		}
-		texture->unbind();
+		scene->render(projection, camera->getViewMatrix());
 
 #if 0
 		shader.SetUniformMat4("md_matrix", glm::mat4x4(1.0f));
@@ -144,12 +133,18 @@ int main(int argc, char** argv){
 		glVertex3f(0.0f, 1.0f, 0.0f);
 		glColor3f(0.0f, 0.0f, 1.0f);
 		glVertex3f(0.0f, 0.0f, 0.0f);
-		glVertex3f(0.0f, 0.0f, 10.0f);
+		glVertex3f(0.0f, 0.0f, 1.0f);
 		glEnd();
 #endif
 
 		display.update();
 
+		time = SDL_GetTicks() - time; // Time elapsed
+		Uint32 timeToWait = 1.0 / ((float)FRAME_RATE_CAP / 1000.0f) - time;
+		if (timeToWait < 0)
+		{
+			SDL_Delay(timeToWait);
+		}
 
 		GLenum error = glGetError();
 		if (error != GL_NO_ERROR){

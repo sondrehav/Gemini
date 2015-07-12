@@ -9,6 +9,7 @@ namespace gemini { namespace graphics{
 		m_shader = shader;
 	}
 
+
 	Mesh::~Mesh()
 	{
 
@@ -31,8 +32,10 @@ namespace gemini { namespace graphics{
 
 	}
 
-	bool Mesh::loadData(const Vertex *vertecies, unsigned int verteciesCount, const GLuint *indices, unsigned int indicesCount)
+	bool Mesh::loadData(const Vertex *vertecies, unsigned int verteciesCount, const GLuint *indices, unsigned int indicesCount, Texture *texture)
 	{
+
+		m_texture = texture;
 
 		m_indicesCount = indicesCount;
 		m_verteciesCount = verteciesCount;
@@ -51,7 +54,7 @@ namespace gemini { namespace graphics{
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, color))); // Color
 		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, texcoord))); // Texcoord
+		glVertexAttribPointer(3, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)(offsetof(Vertex, texcoord))); // Texcoord
 
 		glGenBuffers(1, &m_IBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
@@ -78,6 +81,9 @@ namespace gemini { namespace graphics{
 		md_matrix = glm::rotate(md_matrix, m_rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 		md_matrix = glm::scale(md_matrix, m_size);
 
+		if (m_texture != NULL) m_texture->bind();
+		else glBindTexture(GL_TEXTURE_2D, 0);
+
 		m_shader->Bind();
 		m_shader->SetUniformMat4("pr_matrix", pr_matrix);
 		m_shader->SetUniformMat4("vw_matrix", vw_matrix);
@@ -91,6 +97,18 @@ namespace gemini { namespace graphics{
 
 		m_shader->Unbind();
 
+		if (m_texture != NULL) m_texture->unbind();
+
+	}
+
+//	void Mesh::setTexture(Texture *texture)
+	//{
+		//m_texture = texture;
+	//}
+
+	Texture* Mesh::getTexture()
+	{
+		return m_texture;
 	}
 
 } }

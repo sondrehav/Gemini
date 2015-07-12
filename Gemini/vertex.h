@@ -13,6 +13,13 @@ namespace gemini {
 				color = in_color;
 				texcoord = in_texcoord;
 			}
+			Vertex()
+			{
+				position = glm::vec3(0.0f);
+				normal = glm::vec3(0.0f);
+				color = glm::vec3(0.0f);;
+				texcoord = glm::vec2(0.0f);;
+			}
 			glm::vec3 position;
 			glm::vec3 normal;
 			glm::vec3 color;

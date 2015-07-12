@@ -4,10 +4,15 @@ layout ( location = 0 ) out vec4 color;
 
 uniform sampler2D tex;
 
-in vec3 pass_color;
 in vec2 pass_texcoord;
+in float pass_diffuse;
 
 void main()
 {
-	color = vec4(texture2D(tex, pass_texcoord));
+	vec4 c_Col = texture2D(tex, pass_texcoord);
+	if(c_Col.w < 1.0)
+	{
+		discard;
+	}
+	color = c_Col * pass_diffuse;
 }

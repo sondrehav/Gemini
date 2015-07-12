@@ -83,7 +83,9 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="display.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="material.cpp" />
     <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="scene.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="SOIL\image_DXT.c" />
     <ClCompile Include="SOIL\image_helper.c" />
@@ -95,7 +97,9 @@
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="display.h" />
+    <ClInclude Include="material.h" />
     <ClInclude Include="mesh.h" />
+    <ClInclude Include="scene.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="SOIL\image_DXT.h" />
     <ClInclude Include="SOIL\image_helper.h" />

@@ -99,6 +99,10 @@ namespace gemini { namespace util {
 		int oldw = m_width, oldh = m_height;
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
 		if (oldw != m_width || oldh != m_height){
+			m_mouse_x = m_width / 2;
+			m_mouse_y = m_height / 2;
+			m_mouse_old_x = m_width / 2;
+			m_mouse_old_y = m_height / 2;
 			m_hasResized = true;
 		}
 	}
