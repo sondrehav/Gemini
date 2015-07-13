@@ -64,6 +64,7 @@ namespace gemini { namespace util {
 	}
 
 	bool firstframe = true;
+	bool grabbed = true;
 	void Display::update() 
 	{
 		m_hasResized = false;
@@ -95,9 +96,22 @@ namespace gemini { namespace util {
 				break;
 			}
 		}
-		SDL_WarpMouseInWindow(m_window, m_width / 2, m_height / 2);
+		if (grabbed)
+			SDL_WarpMouseInWindow(m_window, m_width / 2, m_height / 2);
 		int oldw = m_width, oldh = m_height;
 		SDL_GetWindowSize(m_window, &m_width, &m_height);
+		if (isKeyDown(SDLK_F2))
+		{
+			grabbed = !grabbed;
+			if (grabbed)
+			{
+				SDL_ShowCursor(SDL_DISABLE);
+			}
+			else
+			{
+				SDL_ShowCursor(SDL_ENABLE);
+			}
+		}
 		if (oldw != m_width || oldh != m_height){
 			m_mouse_x = m_width / 2;
 			m_mouse_y = m_height / 2;
@@ -105,6 +119,7 @@ namespace gemini { namespace util {
 			m_mouse_old_y = m_height / 2;
 			m_hasResized = true;
 		}
+		
 	}
 
 	void Display::getMousePosition(int &x, int &y)

@@ -6,6 +6,7 @@
 #include <glm\glm.hpp>
 #include <assert.h>
 #include <assimp/Exporter.hpp>
+#include "material.h"
 
 namespace gemini {
 	namespace graphics {
@@ -28,7 +29,7 @@ namespace gemini {
 			}
 		}
 
-		bool Scene::loadScene(const std::string &filename)
+		bool Scene::loadScene(const std::string &filename, Shader* shader)
 		{
 
 			std::string directory;
@@ -39,7 +40,7 @@ namespace gemini {
 			}
 			
 			Assimp::Importer importer;
-			const aiScene* p_scene = importer.ReadFile(filename.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals);
+			const aiScene* p_scene = importer.ReadFile(filename.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_SortByPType);
 			
 			if (!p_scene)
 			{
@@ -54,8 +55,17 @@ namespace gemini {
 
 			for (unsigned int i = 0; i < m_materials.size(); i++)
 			{
-				m_materials[i] = NULL;
 				const aiMaterial* p_material = p_scene->mMaterials[i];
+				Material* m = new Material(shader);
+				m_materials[i] = m;
+				aiString mname;
+				p_material->Get(AI_MATKEY_NAME, mname);
+				if (mname.length > 0)
+					m->m_name = mname.C_Str();
+				std::cout << "Loading material '" << m->m_name << "'." << std::endl;
+				int shadingModel;
+				p_material->Get(AI_MATKEY_SHADING_MODEL, shadingModel);
+				int phong = aiShadingMode_Phong;
 				if (p_material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 				{
 					aiString path;
@@ -69,12 +79,92 @@ namespace gemini {
 						}
 						Texture* t = new Texture();
 						t->load(texturePath);
-						m_materials[i] = t;
+						m_materials[i]->m_diffuseMap = t;
 					}
-					else {
+				}
+				if (p_material->GetTextureCount(aiTextureType_HEIGHT) > 0)
+				{
+					aiString path;
+					if (p_material->GetTexture(aiTextureType_HEIGHT, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+					{
+						std::string texturePath = directory + "/" + path.data;
+						size_t finder;
+						while ((finder = texturePath.rfind("\\")) != std::string::npos)
+						{
+							texturePath.replace(finder, std::string("\\").length(), "/");
+						}
+						Texture* t = new Texture();
+						t->load(texturePath);
+						m_materials[i]->m_normalMap = t;
+					}
+				}
+				if (p_material->GetTextureCount(aiTextureType_SPECULAR) > 0)
+				{
+					aiString path;
+					if (p_material->GetTexture(aiTextureType_SPECULAR, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+					{
+						std::string texturePath = directory + "/" + path.data;
+						size_t finder;
+						while ((finder = texturePath.rfind("\\")) != std::string::npos)
+						{
+							texturePath.replace(finder, std::string("\\").length(), "/");
+						}
+						Texture* t = new Texture();
+						t->load(texturePath);
+						m_materials[i]->m_specularColorMap = t;
+					}
+				}
+				if (p_material->GetTextureCount(aiTextureType_SHININESS) > 0)
+				{
+					aiString path;
+					if (p_material->GetTexture(aiTextureType_SHININESS, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+					{
+						std::string texturePath = directory + "/" + path.data;
+						size_t finder;
+						while ((finder = texturePath.rfind("\\")) != std::string::npos)
+						{
+							texturePath.replace(finder, std::string("\\").length(), "/");
+						}
+						Texture* t = new Texture();
+						t->load(texturePath);
+						m_materials[i]->m_specularHighlightMap = t;
+					}
+				}
+				if (p_material->GetTextureCount(aiTextureType_AMBIENT) > 0)
+				{
+					aiString path;
+					if (p_material->GetTexture(aiTextureType_AMBIENT, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+					{
+						std::string texturePath = directory + "/" + path.data;
+						size_t finder;
+						while ((finder = texturePath.rfind("\\")) != std::string::npos)
+						{
+							texturePath.replace(finder, std::string("\\").length(), "/");
+						}
+						Texture* t = new Texture();
+						t->load(texturePath);
+						m_materials[i]->m_ambientMap = t;
+					}
+				}
+				if (p_material->GetTextureCount(aiTextureType_OPACITY) > 0)
+				{
+					aiString path;
+					if (p_material->GetTexture(aiTextureType_OPACITY, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+					{
+						std::string texturePath = directory + "/" + path.data;
+						size_t finder;
+						while ((finder = texturePath.rfind("\\")) != std::string::npos)
+						{
+							texturePath.replace(finder, std::string("\\").length(), "/");
+						}
+						Texture* t = new Texture();
+						t->load(texturePath);
+						m_materials[i]->m_alphaMap = t;
+					}
+					/*else {
 						std::cerr << "Could not load '" << path.data << "' in scene loader." << std::endl;
 						return false;
-					}
+					}*/
 				}
 			}
 

@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include "shader.h"
 #include "vertex.h"
-#include "texture.h"
+#include "material.h"
 #include <string>
 
 namespace gemini {
@@ -21,14 +21,14 @@ namespace gemini {
 			Shader *m_shader;
 			glm::mat4x4 md_matrix;
 			unsigned int m_indicesCount, m_verteciesCount;
-			Texture *m_texture = NULL;
+			Material *m_texture = NULL;
 		public:
 			Mesh(Shader *shader);
 			virtual ~Mesh();
-			bool loadData(const Vertex *vertecies, unsigned int vertCount, const GLuint *indices, unsigned int indicesCount, Texture *texture);
+			bool loadData(const Vertex *vertecies, unsigned int vertCount, const GLuint *indices, unsigned int indicesCount, Material *texture);
 			bool loadMesh(const std::string &filename);
 			//void setTexture(Texture *texture);
-			Texture* getTexture();
+			Material* getTexture();
 			void render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix);
 			Mesh createInstance();
 		};

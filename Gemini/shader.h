@@ -21,9 +21,9 @@ namespace gemini {
 			void SetUniform4f(std::string uniformName, float a, float b, float c, float d);
 			void SetUniform1i(std::string uniformName, int a);
 			void SetUniformMat4(std::string uniformName, const glm::mat4x4 &matrix);
+			GLint Shader::getUniformLocation(std::string name);
 
 		private:
-			GLint Shader::getUniformLocation(std::string name);
 			static const unsigned int NUM_SHADERS = 2;
 			GLuint m_program;
 			GLuint m_shaders[NUM_SHADERS];

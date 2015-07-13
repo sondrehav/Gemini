@@ -40,7 +40,6 @@ namespace gemini { namespace graphics {
 			GLuint location = glGetUniformLocation(m_program, name);
 			std::cout << "UNIFORM: " << name << " at location " << location << std::endl;
 			m_uniformLocations[std::string(name)] = location;
-
 		}
 
 	}
@@ -65,11 +64,20 @@ namespace gemini { namespace graphics {
 	GLint Shader::getUniformLocation(std::string uniformName){
 		std::unordered_map<std::string, GLuint>::const_iterator f = m_uniformLocations.find(uniformName);
 		if (f == m_uniformLocations.end()){
-			std::cerr << "ERROR: Uniform '" << uniformName << "' in shader does not exist!" << std::endl; // TODO: Output which shader!
+			
 		}
 		else {
 			return f->second;
 		}
+		
+		GLint location = glGetUniformLocation(m_program, uniformName.c_str());
+		if (location != -1){
+			m_uniformLocations[uniformName] = location;
+			return location;
+		}
+
+		std::cerr << "ERROR: Uniform '" << uniformName << "' in shader does not exist!" << std::endl; // TODO: Output which shader!
+
 		return -1;
 	}
 

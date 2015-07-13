@@ -49,6 +49,18 @@ namespace gemini {
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
+		static Texture* WHITE = new Texture("res/default.png");
+		Texture* Texture::getDefault()
+		{
+			return WHITE;
+		}
+
+		Texture::Texture(const std::string &filename)
+		{
+			this->load(filename);
+		}
+
+
 	}
 }
 

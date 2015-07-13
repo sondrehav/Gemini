@@ -5,6 +5,7 @@
 #include "texture.h"
 #include <assimp/scene.h>
 #include "shader.h"
+#include "material.h"
 
 namespace gemini {
 	namespace graphics {
@@ -12,7 +13,7 @@ namespace gemini {
 		{
 		public:
 			Scene(Shader *shader);
-			bool loadScene(const std::string &filename);
+			bool loadScene(const std::string &filename, Shader* shader);
 			virtual ~Scene();
 			void render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix);
 		private:
@@ -20,7 +21,7 @@ namespace gemini {
 		private:
 			Shader *m_shader;
 			std::vector<Mesh*> m_meshes;
-			std::vector<Texture*> m_materials;
+			std::vector<Material*> m_materials;
 		};
 	}
 }

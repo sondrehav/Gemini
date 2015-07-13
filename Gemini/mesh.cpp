@@ -32,7 +32,7 @@ namespace gemini { namespace graphics{
 
 	}
 
-	bool Mesh::loadData(const Vertex *vertecies, unsigned int verteciesCount, const GLuint *indices, unsigned int indicesCount, Texture *texture)
+	bool Mesh::loadData(const Vertex *vertecies, unsigned int verteciesCount, const GLuint *indices, unsigned int indicesCount, Material *texture)
 	{
 
 		m_texture = texture;
@@ -99,6 +99,8 @@ namespace gemini { namespace graphics{
 
 		if (m_texture != NULL) m_texture->unbind();
 
+		if (m_texture != NULL) m_texture->unbind();
+
 	}
 
 //	void Mesh::setTexture(Texture *texture)
@@ -106,7 +108,7 @@ namespace gemini { namespace graphics{
 		//m_texture = texture;
 	//}
 
-	Texture* Mesh::getTexture()
+	Material* Mesh::getTexture()
 	{
 		return m_texture;
 	}

@@ -17,9 +17,9 @@ namespace gemini {
 			void moveFront(float dist);
 			void moveRight(float dist);
 			void moveUp(float dist);
-			inline glm::vec3 front() { glm::vec3 m_front; }
-			inline glm::vec3 right() { glm::vec3 m_right; }
-			inline glm::vec3 up() { glm::vec3 m_up; }
+			inline glm::vec3 front() { return m_front; }
+			inline glm::vec3 right() { return m_right; }
+			inline glm::vec3 up() { return m_up; }
 		private:
 			glm::vec3 m_front = glm::vec3(0.0f, 0.0f, -1.0f);
 			glm::vec3 m_right = glm::vec3(1.0f, 0.0f, 0.0f);

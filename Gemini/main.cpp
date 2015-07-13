@@ -39,13 +39,13 @@ int main(int argc, char** argv){
 	int mouseX = 0, mouseY = 0;
 	glViewport(0, 0, display.getWidth(), display.getHeight());
 
-	Shader shader("res/testShader.vs", "res/testShader.fs");
+	Shader shader("res/material.vs", "res/material.fs");
 	Camera* camera = new Camera();
 	Texture* texture = new Texture();
 	
 	Scene* scene = new Scene(&shader);
 	
-	if (!scene->loadScene("res/scene/sponza/sponza_edit.obj"))
+	if (!scene->loadScene("res/scene/sponza/sponza_edit.obj", &shader));
 	{
 		std::cerr << "Could not load scene." << std::endl;
 	}
@@ -62,13 +62,15 @@ int main(int argc, char** argv){
 	float mouseSens = 0.001f;
 	float speed = 10.0f;
 
-	glm::vec3 lightDirection(-0.5f, -0.5f, -0.5f);
+	glm::vec3 lightDirection(-0.5f, 0.5f, -0.5f);
 
 	glLineWidth(4.0f);
 	bool wf = false;
 	std::cout << "Starting main loop..." << std::endl;
 	float e = 0.0f;
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	while (!display.isCloseRequested()){
 
@@ -76,7 +78,7 @@ int main(int argc, char** argv){
 
 		e += 0.01f;
 		lightDirection.x = cos(e) * 0.5;
-		lightDirection.y = sin(e) * 0.5;
+		lightDirection.z = sin(e) * 0.5;
 
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glClearColor(0.0f, 0.15f, 0.3f, 1.0f);
@@ -111,6 +113,7 @@ int main(int argc, char** argv){
 		view = camera->getViewMatrix();
 		shader.Bind();
 		shader.SetUniform3f("lightDir", lightDirection.x, lightDirection.y, lightDirection.z);
+		shader.SetUniform3f("view_direction", camera->front().x, camera->front().y, camera->front().z);
 
 		if (display.hasResized()) {
 			std::cout << "RESIZE!!" << std::endl;
