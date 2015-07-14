@@ -1,173 +1,57 @@
 #include "material.h"
-
+#include <iostream>
 
 namespace gemini {
 	namespace graphics {
 
-		Material::Material(Shader *shader)
+		Material::Material(std::string name, std::string vertexShader, std::string fragmentShader)
 		{
-			m_shader = shader;
-
+			m_shader = new Shader(vertexShader, fragmentShader);
+			m_name = name;
 			m_shader->Bind();
-
-			/*
-			
-			diffuseMap;
-			ambientMap;
-			specularMap;
-			specularHighlightMap;
-			normalMap;
-			alphaMap;
-			
-			*/
-
-			shader->SetUniform1i("diffuseMap", 0);
-			shader->SetUniform1i("ambientMap", 1);
-			shader->SetUniform1i("specularMap", 2);
-			shader->SetUniform1i("specularHighlightMap", 3);
-			shader->SetUniform1i("normalMap", 4);
-			shader->SetUniform1i("alphaMap", 5);
-
+			m_shader->SetUniform1i("diffuseMap", 0);
+			m_shader->SetUniform1i("ambientMap", 1);
+			m_shader->SetUniform1i("specularMap", 2);
+			m_shader->SetUniform1i("specularHighlightMap", 3);
+			m_shader->SetUniform1i("normalMap", 4);
+			m_shader->SetUniform1i("alphaMap", 5);
+			m_shader->SetUniform3f("diffuseColor", m_diffuseColor.r, m_diffuseColor.b, m_diffuseColor.g);
+			m_shader->SetUniform3f("ambientColor", m_ambientColor.r, m_ambientColor.b, m_ambientColor.g);
+			m_shader->SetUniform3f("specularColor", m_specularColor.r, m_specularColor.b, m_specularColor.g);
+			m_shader->SetUniform1f("transparency", 1.0f);
 			m_shader->Unbind();
-
 		}
 
-		void Material::bind()
+		void Material::use(const glm::mat4x4 &pr, const glm::mat4x4 &vw, const glm::mat4x4 &md, const glm::vec3 front, const glm::vec3 lightDir)
 		{
-			if (m_diffuseMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE0);
-				m_diffuseMap->bind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE0);
-				Texture::getDefault()->bind();
-			}
-			if (m_ambientMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE1);
-				m_ambientMap->bind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE1);
-				Texture::getDefault()->bind();
-			}
-			if (m_specularColorMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE2);
-				m_specularColorMap->bind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE2);
-				Texture::getDefault()->bind();
-			}
-			if (m_specularHighlightMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE3);
-				m_specularHighlightMap->bind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE3);
-				Texture::getDefault()->bind();
-			}
-			if (m_normalMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE4);
-				m_normalMap->bind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE4);
-				Texture::getDefault()->bind();
-			}
-			if (m_alphaMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE5);
-				m_alphaMap->bind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE5);
-				Texture::getDefault()->bind();
-			}
+			m_shader->Bind();
+			m_shader->SetUniformMat4("pr_matrix", pr);
+			m_shader->SetUniformMat4("vw_matrix", vw);
+			m_shader->SetUniformMat4("md_matrix", md);
+			m_shader->SetUniform3f("lightDir", lightDir.x, lightDir.y, lightDir.z);
+			m_shader->SetUniform3f("view_direction", front.x, front.y, front.z);
+			m_diffuse->bind(0);
+			m_ambient->bind(1);
+			m_specular->bind(2);
+			m_specularHighlight->bind(3);
+			m_normals->bind(4);
+			m_alpha->bind(5);
 		}
 
-		void Material::unbind()
+		void Material::release()
 		{
-			if (m_diffuseMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE0);
-				m_diffuseMap->unbind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE0);
-				Texture::getDefault()->unbind();
-			}
-			if (m_ambientMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE1);
-				m_ambientMap->unbind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE1);
-				Texture::getDefault()->unbind();
-			}
-			if (m_specularColorMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE2);
-				m_specularColorMap->unbind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE2);
-				Texture::getDefault()->unbind();
-			}
-			if (m_specularHighlightMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE3);
-				m_specularHighlightMap->unbind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE3);
-				Texture::getDefault()->unbind();
-			}
-			if (m_normalMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE4);
-				m_normalMap->unbind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE4);
-				Texture::getDefault()->unbind();
-			}
-			if (m_alphaMap != NULL)
-			{
-				glActiveTexture(GL_TEXTURE5);
-				m_alphaMap->unbind();
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE5);
-				Texture::getDefault()->unbind();
-			}
+			m_alpha->unbind(5);
+			m_normals->unbind(4);
+			m_specularHighlight->unbind(3);
+			m_specular->unbind(2);	
+			m_ambient->unbind(1);
+			m_diffuse->unbind(0);
+			m_shader->Unbind();
 		}
 
 		Material::~Material()
 		{
-			delete m_diffuseMap;
-			delete m_ambientMap;
-			delete m_specularColorMap;
-			delete m_specularHighlightMap;
-			delete m_normalMap;
-			delete m_alphaMap;
+			
 		}
 
 	}

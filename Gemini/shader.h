@@ -23,7 +23,12 @@ namespace gemini {
 			void SetUniformMat4(std::string uniformName, const glm::mat4x4 &matrix);
 			GLint Shader::getUniformLocation(std::string name);
 
+			inline std::string vertPath(){ return m_vertPath; }
+			inline std::string fragPath(){ return m_fragPath; }
+
 		private:
+			std::string m_vertPath;
+			std::string m_fragPath;
 			static const unsigned int NUM_SHADERS = 2;
 			GLuint m_program;
 			GLuint m_shaders[NUM_SHADERS];

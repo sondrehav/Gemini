@@ -38,9 +38,12 @@ namespace gemini { namespace graphics {
 			glGetActiveUniform(m_program, GLuint(i), sizeof(name) - 1, &nameLen, &num, &type, name);
 			name[nameLen] = 0;
 			GLuint location = glGetUniformLocation(m_program, name);
-			std::cout << "UNIFORM: " << name << " at location " << location << std::endl;
+			//std::cout << "UNIFORM: " << name << " at location " << location << std::endl;
 			m_uniformLocations[std::string(name)] = location;
 		}
+
+		m_vertPath = vertexShader;
+		m_fragPath = fragmentShader;
 
 	}
 

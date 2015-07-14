@@ -19,8 +19,7 @@
 #define CLIP_NEAR 50.0f
 #define CLIP_FAR 100000.0f
 
-#define YAW camera->m_rotation.y
-#define PITCH camera->m_rotation.x
+#define CAMERA_SPEED 100.0f
 
 #define FRAME_RATE_CAP 60
 
@@ -39,17 +38,14 @@ int main(int argc, char** argv){
 	int mouseX = 0, mouseY = 0;
 	glViewport(0, 0, display.getWidth(), display.getHeight());
 
-	Shader shader("res/material.vs", "res/material.fs");
 	Camera* camera = new Camera();
-	Texture* texture = new Texture();
 	
-	Scene* scene = new Scene(&shader);
+	Scene* scene = new Scene();
 	
-	if (!scene->loadScene("res/scene/sponza/sponza_edit.obj", &shader));
+	if (!scene->loadScene("res/scene/sponza/sponza_edit.obj"));
 	{
 		std::cerr << "Could not load scene." << std::endl;
 	}
-
 
 	glm::mat4x4 projection = glm::perspective(70.0f, (float)WIDTH / (float)HEIGHT, CLIP_NEAR, CLIP_FAR);
 	glm::mat4x4 view;
@@ -60,7 +56,7 @@ int main(int argc, char** argv){
 	glEnable(GL_DEPTH_TEST);
 
 	float mouseSens = 0.001f;
-	float speed = 10.0f;
+	float speed = CAMERA_SPEED;
 
 	glm::vec3 lightDirection(-0.5f, 0.5f, -0.5f);
 
@@ -72,13 +68,16 @@ int main(int argc, char** argv){
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	unsigned int frameCount = 0;
+
 	while (!display.isCloseRequested()){
 
 		Uint32 time = SDL_GetTicks();
+		Uint32 time2 = time;
 
-		e += 0.01f;
-		lightDirection.x = cos(e) * 0.5;
-		lightDirection.z = sin(e) * 0.5;
+		//e += 0.003f;
+		//lightDirection.x = cos(e) * 0.5;
+		//lightDirection.z = sin(e) * 0.5;
 
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		glClearColor(0.0f, 0.15f, 0.3f, 1.0f);
@@ -99,8 +98,8 @@ int main(int argc, char** argv){
 
 		display.getMouseSpeed(mouseX, mouseY);
 
-		PITCH += mouseY * mouseSens;
-		YAW += mouseX * mouseSens;
+		camera->m_rotation.x += mouseY * mouseSens;
+		camera->m_rotation.y += mouseX * mouseSens;
 
 		if (display.isKeyHold(SDLK_w)) camera->moveFront(speed);
 		if (display.isKeyHold(SDLK_a)) camera->moveRight(-speed);
@@ -109,11 +108,14 @@ int main(int argc, char** argv){
 		if (display.isKeyHold(SDLK_q)) camera->moveUp(speed);
 		if (display.isKeyHold(SDLK_e)) camera->moveUp(-speed);
 
+		if (display.isKeyHold(SDLK_l)) lightDirection = camera->front();
+
 		camera->update();
 		view = camera->getViewMatrix();
-		shader.Bind();
-		shader.SetUniform3f("lightDir", lightDirection.x, lightDirection.y, lightDirection.z);
-		shader.SetUniform3f("view_direction", camera->front().x, camera->front().y, camera->front().z);
+
+
+		//shader.SetUniform3f("lightDir", lightDirection.x, lightDirection.y, lightDirection.z);
+		//shader.SetUniform3f("view_direction", camera->front().x, camera->front().y, camera->front().z);
 
 		if (display.hasResized()) {
 			std::cout << "RESIZE!!" << std::endl;
@@ -123,7 +125,7 @@ int main(int argc, char** argv){
 			projection = glm::perspective(70.0f, aspect, CLIP_NEAR, CLIP_FAR);
 		}
 		
-		scene->render(projection, camera->getViewMatrix());
+		scene->render(projection, camera->getViewMatrix(), lightDirection, camera->front());
 
 #if 0
 		shader.SetUniformMat4("md_matrix", glm::mat4x4(1.0f));
@@ -153,6 +155,11 @@ int main(int argc, char** argv){
 		if (error != GL_NO_ERROR){
 			std::cout << "OpenGL error: " << error << std::endl;
 		}
+
+		time2 = SDL_GetTicks() - time2;
+		float fps = 1000.0f / (float)time2;
+		//if (frameCount++ % 60 == 0)
+			//std::cout << fps << std::endl;
 
 	}
 

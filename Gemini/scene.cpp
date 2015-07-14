@@ -7,29 +7,26 @@
 #include <assert.h>
 #include <assimp/Exporter.hpp>
 #include "material.h"
+#include "stringFunctions.h"
 
 namespace gemini {
 	namespace graphics {
 
-		Scene::Scene(Shader *shader)
-		{
-			m_shader = shader;
-		}
+		Scene::Scene()
+		{}
 
 		Scene::~Scene()
-		{
+		{}
 
-		}
-
-		void Scene::render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix)
+		void Scene::render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix, const glm::vec3 lightDir, const glm::vec3 viewDir)
 		{
 			for (unsigned int i = 0; i < m_meshes.size(); i++)
 			{
-				m_meshes[i]->render(pr_matrix, vw_matrix);
+				m_meshes[i]->render(pr_matrix, vw_matrix, lightDir, viewDir);
 			}
 		}
 
-		bool Scene::loadScene(const std::string &filename, Shader* shader)
+		bool Scene::loadScene(const std::string &filename)
 		{
 
 			std::string directory;
@@ -52,126 +49,109 @@ namespace gemini {
 			m_meshes.resize(p_scene->mNumMeshes);
 			m_materials.resize(p_scene->mNumMaterials);
 
-
 			for (unsigned int i = 0; i < m_materials.size(); i++)
 			{
+
 				const aiMaterial* p_material = p_scene->mMaterials[i];
-				Material* m = new Material(shader);
-				m_materials[i] = m;
 				aiString mname;
 				p_material->Get(AI_MATKEY_NAME, mname);
+				std::string materialName;
 				if (mname.length > 0)
-					m->m_name = mname.C_Str();
-				std::cout << "Loading material '" << m->m_name << "'." << std::endl;
-				int shadingModel;
-				p_material->Get(AI_MATKEY_SHADING_MODEL, shadingModel);
-				int phong = aiShadingMode_Phong;
-				if (p_material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+					materialName = mname.C_Str();
+				Material* m;
+				if (materialName == "DefaultMaterial")
 				{
-					aiString path;
-					if (p_material->GetTexture(aiTextureType_DIFFUSE, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
-					{
-						std::string texturePath = directory + "/" + path.data;
-						size_t finder;
-						while ((finder = texturePath.rfind("\\")) != std::string::npos)
-						{
-							texturePath.replace(finder, std::string("\\").length(), "/");
-						}
-						Texture* t = new Texture();
-						t->load(texturePath);
-						m_materials[i]->m_diffuseMap = t;
-					}
+					m = new Material(materialName, "res/default.vs", "res/default.fs");
+					m_materials[i] = m;
+					continue;
 				}
-				if (p_material->GetTextureCount(aiTextureType_HEIGHT) > 0)
+				else
 				{
-					aiString path;
-					if (p_material->GetTexture(aiTextureType_HEIGHT, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
-					{
-						std::string texturePath = directory + "/" + path.data;
-						size_t finder;
-						while ((finder = texturePath.rfind("\\")) != std::string::npos)
-						{
-							texturePath.replace(finder, std::string("\\").length(), "/");
-						}
-						Texture* t = new Texture();
-						t->load(texturePath);
-						m_materials[i]->m_normalMap = t;
-					}
+					m = new Material(materialName, "res/material.vs", "res/material.fs");
 				}
-				if (p_material->GetTextureCount(aiTextureType_SPECULAR) > 0)
+				std::cout << "Loading material '" << materialName << "'." << std::endl;
+				m_materials[i] = m;
+
+				aiString path;
+
+				// Diffuse texture
+
+				if (p_material->GetTextureCount(aiTextureType_DIFFUSE) > 0 &&
+					p_material->GetTexture(aiTextureType_DIFFUSE, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 				{
-					aiString path;
-					if (p_material->GetTexture(aiTextureType_SPECULAR, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
-					{
-						std::string texturePath = directory + "/" + path.data;
-						size_t finder;
-						while ((finder = texturePath.rfind("\\")) != std::string::npos)
-						{
-							texturePath.replace(finder, std::string("\\").length(), "/");
-						}
-						Texture* t = new Texture();
-						t->load(texturePath);
-						m_materials[i]->m_specularColorMap = t;
-					}
+					std::string texturePath = directory + "/" + helper::replace(path.data, "\\", "/");
+					m->setDiffuseTexture(Texture::addTexture(texturePath));
 				}
-				if (p_material->GetTextureCount(aiTextureType_SHININESS) > 0)
+
+				// Normal texture
+
+				if (p_material->GetTextureCount(aiTextureType_HEIGHT) > 0 &&
+					p_material->GetTexture(aiTextureType_HEIGHT, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 				{
-					aiString path;
-					if (p_material->GetTexture(aiTextureType_SHININESS, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
-					{
-						std::string texturePath = directory + "/" + path.data;
-						size_t finder;
-						while ((finder = texturePath.rfind("\\")) != std::string::npos)
-						{
-							texturePath.replace(finder, std::string("\\").length(), "/");
-						}
-						Texture* t = new Texture();
-						t->load(texturePath);
-						m_materials[i]->m_specularHighlightMap = t;
-					}
+					std::string texturePath = directory + "/" + helper::replace(path.data, "\\", "/");
+					m->setNormalTexture(Texture::addTexture(texturePath));
 				}
-				if (p_material->GetTextureCount(aiTextureType_AMBIENT) > 0)
+
+				// Specular texture
+
+				if (p_material->GetTextureCount(aiTextureType_SPECULAR) > 0 &&
+					p_material->GetTexture(aiTextureType_SPECULAR, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 				{
-					aiString path;
-					if (p_material->GetTexture(aiTextureType_AMBIENT, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
-					{
-						std::string texturePath = directory + "/" + path.data;
-						size_t finder;
-						while ((finder = texturePath.rfind("\\")) != std::string::npos)
-						{
-							texturePath.replace(finder, std::string("\\").length(), "/");
-						}
-						Texture* t = new Texture();
-						t->load(texturePath);
-						m_materials[i]->m_ambientMap = t;
-					}
+					std::string texturePath = directory + "/" + helper::replace(path.data, "\\", "/");
+					m->setSpecularTexture(Texture::addTexture(texturePath));
 				}
-				if (p_material->GetTextureCount(aiTextureType_OPACITY) > 0)
+
+				// SpecularH texture
+
+				if (p_material->GetTextureCount(aiTextureType_SHININESS) > 0 &&
+					p_material->GetTexture(aiTextureType_SHININESS, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 				{
-					aiString path;
-					if (p_material->GetTexture(aiTextureType_OPACITY, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
-					{
-						std::string texturePath = directory + "/" + path.data;
-						size_t finder;
-						while ((finder = texturePath.rfind("\\")) != std::string::npos)
-						{
-							texturePath.replace(finder, std::string("\\").length(), "/");
-						}
-						Texture* t = new Texture();
-						t->load(texturePath);
-						m_materials[i]->m_alphaMap = t;
-					}
-					/*else {
-						std::cerr << "Could not load '" << path.data << "' in scene loader." << std::endl;
-						return false;
-					}*/
+					std::string texturePath = directory + "/" + helper::replace(path.data, "\\", "/");
+					m->setSpecHighlightTexture(Texture::addTexture(texturePath));
 				}
+
+				// Ambient texture
+
+				if (p_material->GetTextureCount(aiTextureType_AMBIENT) > 0 &&
+					p_material->GetTexture(aiTextureType_AMBIENT, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+				{
+					std::string texturePath = directory + "/" + helper::replace(path.data, "\\", "/");
+					m->setAmbientTexture(Texture::addTexture(texturePath));
+				}
+
+				// Alpha texture
+
+				if (p_material->GetTextureCount(aiTextureType_OPACITY) > 0 &&
+					p_material->GetTexture(aiTextureType_OPACITY, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+				{
+					std::string texturePath = directory + "/" + helper::replace(path.data, "\\", "/");
+					m->setAlphaTexture(Texture::addTexture(texturePath));
+				}
+
+				// Colors
+
+				aiColor3D dif(1.0f, 1.0f, 1.0f);
+				aiColor3D amb(0.0f, 0.0f, 0.0f);
+				aiColor3D spec(0.0f, 0.0f, 0.0f);
+				p_material->Get(AI_MATKEY_COLOR_DIFFUSE, dif);
+				p_material->Get(AI_MATKEY_COLOR_AMBIENT, amb);
+				p_material->Get(AI_MATKEY_COLOR_SPECULAR, spec);
+
+				m->setDiffuseColor(dif.r, dif.b, dif.g);
+				m->setAmbientColor(amb.r, amb.b, amb.g);
+				m->setSpecularColor(spec.r, spec.b, spec.g);
+
+				// Transparency
+
+				float trans = 1.0f;
+				float transparency = p_material->Get(AI_MATKEY_OPACITY, trans);
+				m->setTransparency(trans);
 			}
 
 			for (unsigned int i = 0; i < m_meshes.size(); i++)
 			{
 				aiMesh* paiMesh = p_scene->mMeshes[i];
-				m_meshes[i] = initMesh(paiMesh, m_shader);
+				m_meshes[i] = initMesh(paiMesh);
 				std::cout << "Loaded mesh '" << &(paiMesh->mName) << "'." << std::endl;
 				unsigned int vcount = p_scene->mMeshes[i]->mNumVertices;
 				unsigned int fcount = p_scene->mMeshes[i]->mNumFaces;
@@ -183,7 +163,7 @@ namespace gemini {
 
 		}
 
-		Mesh* Scene::initMesh(aiMesh* paiMesh, Shader *shader){
+		Mesh* Scene::initMesh(aiMesh* paiMesh){
 
 			std::vector<Vertex> vertecies;
 			unsigned int v_count = paiMesh->mNumVertices;
@@ -196,7 +176,6 @@ namespace gemini {
 			const aiVector3D zeroVec(0.0f, 0.0f, 0.0f);
 			const aiColor4D zeroCol(0.0f, 0.0f, 0.0f, 0.0f);
 
-			const float fefe = 1.0f;
 			for (unsigned int i = 0; i < v_count; i++)
 			{
 
@@ -211,9 +190,6 @@ namespace gemini {
 					glm::vec3(color->r, color->b, color->g),
 					glm::vec2(texCoord->x, texCoord->y)
 				);
-				if (texCoord->x>1.0f || texCoord->x<0.0f || texCoord->y>1.0f || texCoord->y < 0.0f){
-					if (false){}
-				}
 
 				vertecies[i] = v;
 
@@ -230,8 +206,7 @@ namespace gemini {
 
 			}
 
-			Mesh* m = new Mesh(shader);
-			m->loadData(&vertecies[0], v_count, &faces[0], i_count * 3, m_materials[paiMesh->mMaterialIndex]);
+			Mesh* m = new Mesh(m_materials[paiMesh->mMaterialIndex], & vertecies[0], v_count, &faces[0], i_count * 3);
 
 			return m;
 

@@ -18,19 +18,16 @@ namespace gemini {
 			glm::vec3 m_size = glm::vec3(1.0f, 1.0f, 1.0f);
 		private:
 			GLuint m_VAO, m_VBO, m_IBO;
-			Shader *m_shader;
 			glm::mat4x4 md_matrix;
 			unsigned int m_indicesCount, m_verteciesCount;
-			Material *m_texture = NULL;
+			Material *m_material;
 		public:
-			Mesh(Shader *shader);
+			Mesh(Material* material, const Vertex *vertecies, unsigned int vertCount, const GLuint *indices, unsigned int indicesCount);
 			virtual ~Mesh();
-			bool loadData(const Vertex *vertecies, unsigned int vertCount, const GLuint *indices, unsigned int indicesCount, Material *texture);
-			bool loadMesh(const std::string &filename);
-			//void setTexture(Texture *texture);
-			Material* getTexture();
-			void render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix);
-			Mesh createInstance();
+			inline Material* getTexture() { return m_material; }
+			void render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix, const glm::vec3 lightDir, const glm::vec3 viewDir);
+		private:
+			bool setData(const Vertex *vertecies, unsigned int verteciesCount, const GLuint *indices, unsigned int indicesCount);
 		};
 	}
 }

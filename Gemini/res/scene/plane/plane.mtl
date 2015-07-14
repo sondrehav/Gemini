@@ -1,6 +1,4 @@
-# 
-# 
-newmtl car_scrap
+newmtl plane
 Ns 96.078431
 Ka 0.000000 0.000000 0.100000
 Kd 0.640000 0.640000 0.640000
@@ -8,7 +6,7 @@ Ks 1.000000 1.000000 1.000000
 Ni 1.000000
 d 1.000000
 illum 1
-map_Kd car_scrap_d.dds
-map_Ks car_scrap_s.dds
-
-
+map_Kd diffuse.tga
+map_bump bump.tga
+map_Ks spec.tga
+map_d alpha2.tga

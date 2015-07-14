@@ -9,6 +9,12 @@ uniform sampler2D specularHighlightMap;
 uniform sampler2D normalMap;
 uniform sampler2D alphaMap;
 
+in vec3 pass_diffuseColor;
+in vec3 pass_ambientColor;
+in vec3 pass_specularColor;
+
+in float transparency;
+
 in vec2 pass_texcoord;
 in vec3 pass_normal;
 in vec3 pass_light;
@@ -24,16 +30,17 @@ void main()
 	vec4 c_norm = texture2D(normalMap, pass_texcoord);
 	vec4 c_alpha = texture2D(alphaMap, pass_texcoord);
 
-	vec3 reflection = reflect(-pass_light, pass_normal);
-	float spec = pow(max(dot(pass_viewDir, reflection), 0.0), 10.0);
+	vec3 n_map = vec3(c_norm.rg * 2.0 - 1.0, c_norm.b - 1.0);
+	vec3 norm = pass_normal + n_map;
 
-	if(c_alpha.w < 0.9)
+	vec3 reflection = reflect(-pass_light, norm);
+	float spec = pow(max(dot(reflection, pass_viewDir), 0.0), 1.0) * 1.0;
+	float diffuse = max(dot(norm, pass_light), 0.0);
+
+	if(c_alpha.r < 0.9)
 	{
 		discard;
 	}
 
-	float diffuseAmount = clamp(dot(pass_light, pass_normal), 0.0, 1.0) * 0.8 + 0.2;
-
-	//color = vec4(c_dif.rgb * diffuseAmount + vec3(spec, spec, spec), c_alpha.r);
-	color = vec4(c_dif.rgb * diffuseAmount, c_alpha.r);
+	color = vec4(c_dif.rgb * diffuse + spec * c_spec.rgb, 1.0);
 }
