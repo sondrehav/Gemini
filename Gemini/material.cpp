@@ -22,13 +22,13 @@ namespace gemini {
 			m_shader->Unbind();
 		}
 
-		void Material::use(const glm::mat4x4 &pr, const glm::mat4x4 &vw, const glm::mat4x4 &md, const glm::vec3 front, const glm::vec3 lightDir)
+		void Material::use(const glm::mat4x4 &pr, const glm::mat4x4 &vw, const glm::mat4x4 &md, const glm::vec3 light_pos, const glm::vec3 front)
 		{
 			m_shader->Bind();
 			m_shader->SetUniformMat4("pr_matrix", pr);
 			m_shader->SetUniformMat4("vw_matrix", vw);
 			m_shader->SetUniformMat4("md_matrix", md);
-			m_shader->SetUniform3f("lightDir", lightDir.x, lightDir.y, lightDir.z);
+			m_shader->SetUniform3f("light_pos", light_pos.x, light_pos.y, light_pos.z);
 			m_shader->SetUniform3f("view_direction", front.x, front.y, front.z);
 			m_diffuse->bind(0);
 			m_ambient->bind(1);

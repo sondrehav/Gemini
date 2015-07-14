@@ -21,10 +21,13 @@ namespace gemini {
 			void SetUniform4f(std::string uniformName, float a, float b, float c, float d);
 			void SetUniform1i(std::string uniformName, int a);
 			void SetUniformMat4(std::string uniformName, const glm::mat4x4 &matrix);
-			GLint Shader::getUniformLocation(std::string name);
+			GLint Shader::getUniformLocation(std::string name, bool showWarnings = true);
+			bool Shader::hasUniformLocation(std::string name);
 
 			inline std::string vertPath(){ return m_vertPath; }
 			inline std::string fragPath(){ return m_fragPath; }
+
+			static void upload1fToAll(std::string uniform, GLfloat value);
 
 		private:
 			std::string m_vertPath;

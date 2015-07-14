@@ -19,7 +19,7 @@
 #define CLIP_NEAR 50.0f
 #define CLIP_FAR 100000.0f
 
-#define CAMERA_SPEED 100.0f
+#define CAMERA_SPEED 10.0f
 
 #define FRAME_RATE_CAP 60
 
@@ -58,7 +58,7 @@ int main(int argc, char** argv){
 	float mouseSens = 0.001f;
 	float speed = CAMERA_SPEED;
 
-	glm::vec3 lightDirection(-0.5f, 0.5f, -0.5f);
+	glm::vec3 light_position(-0.5f, 0.5f, -0.5f);
 
 	glLineWidth(4.0f);
 	bool wf = false;
@@ -69,6 +69,10 @@ int main(int argc, char** argv){
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	unsigned int frameCount = 0;
+
+	bool light_follow = true;
+
+	float lightSpread = 1000.0f;
 
 	while (!display.isCloseRequested()){
 
@@ -108,14 +112,31 @@ int main(int argc, char** argv){
 		if (display.isKeyHold(SDLK_q)) camera->moveUp(speed);
 		if (display.isKeyHold(SDLK_e)) camera->moveUp(-speed);
 
-		if (display.isKeyHold(SDLK_l)) lightDirection = camera->front();
+		if (display.isKeyHold(SDLK_PLUS)){
+			lightSpread *= 1.1f;
+			Shader::upload1fToAll("light_spread", lightSpread);
+		}
+		if (display.isKeyHold(SDLK_MINUS)){
+			if (lightSpread > 20.0f)
+				lightSpread /= 1.1f;
+			Shader::upload1fToAll("light_spread", lightSpread);
+		}
+
+		if (display.isKeyHold(SDLK_l)){
+			light_follow = !light_follow;
+		}
+
+		if (light_follow)
+			light_position = camera->m_position;
 
 		camera->update();
 		view = camera->getViewMatrix();
 
+		//std::cout << camera->front().x << ", " << camera->front().y << ", " << camera->front().z << std::endl;
 
 		//shader.SetUniform3f("lightDir", lightDirection.x, lightDirection.y, lightDirection.z);
 		//shader.SetUniform3f("view_direction", camera->front().x, camera->front().y, camera->front().z);
+
 
 		if (display.hasResized()) {
 			std::cout << "RESIZE!!" << std::endl;
@@ -125,7 +146,7 @@ int main(int argc, char** argv){
 			projection = glm::perspective(70.0f, aspect, CLIP_NEAR, CLIP_FAR);
 		}
 		
-		scene->render(projection, camera->getViewMatrix(), lightDirection, camera->front());
+		scene->render(projection, camera->getViewMatrix(), -light_position, -camera->front());
 
 #if 0
 		shader.SetUniformMat4("md_matrix", glm::mat4x4(1.0f));

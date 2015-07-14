@@ -58,7 +58,7 @@ namespace gemini {
 				m_shader->Unbind();
 			}
 
-			void use(const glm::mat4x4 &pr, const glm::mat4x4 &vw, const glm::mat4x4 &md, const glm::vec3 front, const glm::vec3 lightDir);
+			void use(const glm::mat4x4 &pr, const glm::mat4x4 &vw, const glm::mat4x4 &md, const glm::vec3 light_pos, const glm::vec3 viewDir);
 			void release();
 
 		private:

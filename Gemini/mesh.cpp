@@ -62,7 +62,7 @@ namespace gemini { namespace graphics{
 		md_matrix = glm::rotate(md_matrix, m_rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 		md_matrix = glm::scale(md_matrix, m_size);
 
-		m_material->use(pr_matrix, vw_matrix, md_matrix, viewDir, lightDir);
+		m_material->use(pr_matrix, vw_matrix, md_matrix, lightDir, viewDir);
 
 		glBindVertexArray(m_VAO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);

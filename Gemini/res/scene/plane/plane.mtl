@@ -9,4 +9,3 @@ illum 1
 map_Kd diffuse.tga
 map_bump bump.tga
 map_Ks spec.tga
-map_d alpha2.tga

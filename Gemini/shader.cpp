@@ -9,6 +9,9 @@ static void CheckShaderError(GLuint shaderID, GLuint flag, bool isProgram, const
 static GLuint CreateShader(const std::string &source, GLenum shaderType);
 
 namespace gemini { namespace graphics {
+
+	static std::vector<Shader*> allShaders;
+
 	Shader::Shader(const std::string vertexShader, const std::string fragmentShader){
 
 		m_program = glCreateProgram();
@@ -45,6 +48,8 @@ namespace gemini { namespace graphics {
 		m_vertPath = vertexShader;
 		m_fragPath = fragmentShader;
 
+		allShaders.push_back(this);
+
 	}
 
 	void Shader::Bind(){
@@ -63,8 +68,7 @@ namespace gemini { namespace graphics {
 		glDeleteProgram(m_program);
 	}
 
-
-	GLint Shader::getUniformLocation(std::string uniformName){
+	GLint Shader::getUniformLocation(std::string uniformName, bool suppressWarnings){
 		std::unordered_map<std::string, GLuint>::const_iterator f = m_uniformLocations.find(uniformName);
 		if (f == m_uniformLocations.end()){
 			
@@ -78,8 +82,8 @@ namespace gemini { namespace graphics {
 			m_uniformLocations[uniformName] = location;
 			return location;
 		}
-
-		std::cerr << "ERROR: Uniform '" << uniformName << "' in shader does not exist!" << std::endl; // TODO: Output which shader!
+		if (!suppressWarnings)
+			std::cerr << "ERROR: Uniform '" << uniformName << "' in shader does not exist!" << std::endl; // TODO: Output which shader!
 
 		return -1;
 	}
@@ -90,7 +94,29 @@ namespace gemini { namespace graphics {
 	void Shader::SetUniform4f(std::string name, float x, float y, float z, float w){ glUniform4f(getUniformLocation(name), x, y, z, w); }
 	void Shader::SetUniform1i(std::string name, int value){ glUniform1i(getUniformLocation(name), value); }
 	void Shader::SetUniformMat4(std::string name, const glm::mat4x4 &matrix){ glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, (GLfloat*)&matrix); }
+	bool Shader::hasUniformLocation(std::string name)
+	{
+		std::unordered_map<std::string, GLuint>::iterator it = m_uniformLocations.find(name);
+		GLuint b3;
+		if (it != m_uniformLocations.end())
+		{
+			return true;
+		}
+		return false;
+	}
 
+	void Shader::upload1fToAll(std::string uniform, GLfloat value)
+	{
+		for (int i = 0; i < allShaders.size(); i++)
+		{
+			Shader* s = allShaders[i];
+			s->Bind();
+			if (s->hasUniformLocation(uniform))
+			{
+				s->SetUniform1f(uniform, value);
+			}
+		}
+	}
 
 } }
 
@@ -108,6 +134,7 @@ static GLuint CreateShader(const std::string &source, GLenum shaderType){
 	return shaderid;
 
 }
+
 
 static void CheckShaderError(GLuint shader, GLuint flag, bool isProgram, const char* errorMessage){
 	GLint success = 0;
