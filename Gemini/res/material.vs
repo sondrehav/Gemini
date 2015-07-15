@@ -2,49 +2,56 @@
 
 layout ( location = 0 ) in vec3 in_vertex;
 layout ( location = 1 ) in vec3 in_normal;
-layout ( location = 2 ) in vec3 in_color;
+layout ( location = 2 ) in vec3 in_tangent;
 layout ( location = 3 ) in vec2 in_texcoord;
 
-out vec2 pass_texcoord;
-out vec3 pass_normal;
-out vec3 pass_light;
-out vec3 pass_viewDir;
+out DATA
+{
+	vec3 lightDirection;
+	float lightSpread;
+	float lightStrength;
 
-out vec3 pass_diffuseColor;
-out vec3 pass_ambientColor;
-out vec3 pass_specularColor;
+	vec3 viewDirection;
 
-out float pass_light_spread;
+	vec3 difColor;
+	vec3 ambColor;
+	vec3 specColor;
+	float transp;
+	float shine;
 
-out float pass_transparency;
-
-out vec3 dif_test;
+	vec3 normal;
+	vec3 tangent;
+	vec3 binormal;
+	vec2 uv;
+} vs;
 
 uniform mat4 pr_matrix = mat4(1.0);
 uniform mat4 vw_matrix = mat4(1.0);
 uniform mat4 md_matrix = mat4(1.0);
-
-uniform vec3 light_pos;
-uniform vec3 view_direction = vec3(1.0,1.0,1.0);
-
+uniform vec3 lightPosition;
+uniform float lightSpread;
+uniform float lightStrength;
+uniform vec3 viewDirection;
 uniform vec3 diffuseColor;
 uniform vec3 ambientColor;
 uniform vec3 specularColor;
-
+uniform float shine;
 uniform float transparency;
-uniform float light_spread = 100000.0;
 
 void main()
 {
-	pass_light_spread = light_spread;
-	dif_test = in_vertex - light_pos;
+	vs.lightDirection = lightPosition - (md_matrix * vec4(in_vertex, 1.0)).xyz;
+	vs.lightSpread = lightSpread;
+	vs.viewDirection = viewDirection;
+	vs.lightStrength = lightStrength;
+	vs.difColor = diffuseColor;
+	vs.ambColor = ambientColor;
+	vs.specColor = specularColor;
+	vs.transp = transparency;
+	vs.shine = shine;
+	vs.normal = in_normal;
+	vs.tangent = in_tangent;
+	vs.binormal = cross(in_normal, in_tangent);
+	vs.uv = in_texcoord;
 	gl_Position = pr_matrix * vw_matrix * md_matrix * vec4(in_vertex, 1.0);
-	pass_texcoord = in_texcoord;
-	pass_normal = in_normal;
-	pass_light = light_pos;
-	pass_diffuseColor = diffuseColor;
-	pass_ambientColor = ambientColor;
-	pass_specularColor = specularColor;
-	pass_transparency = transparency;
-	pass_viewDir = view_direction;
 }

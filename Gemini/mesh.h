@@ -25,7 +25,7 @@ namespace gemini {
 			Mesh(Material* material, const Vertex *vertecies, unsigned int vertCount, const GLuint *indices, unsigned int indicesCount);
 			virtual ~Mesh();
 			inline Material* getTexture() { return m_material; }
-			void render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix, const glm::vec3 lightDir, const glm::vec3 viewDir);
+			void render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix);
 		private:
 			bool setData(const Vertex *vertecies, unsigned int verteciesCount, const GLuint *indices, unsigned int indicesCount);
 		};

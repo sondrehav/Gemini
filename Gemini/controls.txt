@@ -1,0 +1,15 @@
+1: 	shine +
+2: 	shine - 
+3: 	light att +
+4: 	light att -
+5:	light strength +
+6:	light strength -
+w: 	forward
+a: 	left
+s: 	back
+d: 	right
+f1:	wireframe
+f11:	maximize
+l:	light follow
+q:	up
+e:	down

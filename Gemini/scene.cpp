@@ -18,11 +18,11 @@ namespace gemini {
 		Scene::~Scene()
 		{}
 
-		void Scene::render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix, const glm::vec3 lightDir, const glm::vec3 viewDir)
+		void Scene::render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix)
 		{
 			for (unsigned int i = 0; i < m_meshes.size(); i++)
 			{
-				m_meshes[i]->render(pr_matrix, vw_matrix, lightDir, viewDir);
+				m_meshes[i]->render(pr_matrix, vw_matrix);
 			}
 		}
 
@@ -181,13 +181,15 @@ namespace gemini {
 
 				const aiVector3D* pos = &(paiMesh->mVertices[i]);
 				const aiVector3D* normal = paiMesh->HasNormals() ? &(paiMesh->mNormals[i]) : &zeroVec;
-				const aiColor4D* color = paiMesh->HasVertexColors(0) ? paiMesh->mColors[i] : &zeroCol;
 				const aiVector3D* texCoord = paiMesh->HasTextureCoords(0) ? &(paiMesh->mTextureCoords[0][i]) : &zeroVec;
+
+				glm::vec3 norm(normal->x, normal->y, normal->z);
+				norm = glm::normalize(norm);
 
 				Vertex v(
 					glm::vec3(pos->x, pos->y, pos->z),
-					glm::vec3(normal->x, normal->y, normal->z),
-					glm::vec3(color->r, color->b, color->g),
+					norm,
+					glm::vec3(0.0f, 0.0f, 0.0f),
 					glm::vec2(texCoord->x, texCoord->y)
 				);
 
@@ -206,7 +208,70 @@ namespace gemini {
 
 			}
 
+			glm::vec3* tan1 = new glm::vec3[vertecies.size()];
+			glm::vec3* tan2 = new glm::vec3[vertecies.size()];
+
+			for (unsigned int i = 0; i < faces.size(); i+=3)
+			{
+
+				unsigned int i1 = faces[i + 0];
+				unsigned int i2 = faces[i + 1];
+				unsigned int i3 = faces[i + 2];
+
+				glm::vec3 v1 = vertecies[i1].position;
+				glm::vec3 v2 = vertecies[i2].position;
+				glm::vec3 v3 = vertecies[i3].position;
+
+				glm::vec2 w1 = vertecies[i1].texcoord;
+				glm::vec2 w2 = vertecies[i2].texcoord;
+				glm::vec2 w3 = vertecies[i3].texcoord;
+
+				float x1 = v2.x - v1.x;
+				float x2 = v3.x - v1.x;
+				float y1 = v2.y - v1.y;
+				float y2 = v3.y - v1.y;
+				float z1 = v2.z - v1.z;
+				float z2 = v3.z - v1.z;
+
+				float s1 = w2.x - w1.x;
+				float s2 = w3.x - w1.x;
+				float t1 = w2.y - w1.y;
+				float t2 = w3.y - w1.y;
+
+				float r = 1.0f / (s1 * t2 - s2 * t1);
+
+				glm::vec3 sdir = glm::vec3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
+				glm::vec3 tdir = glm::vec3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
+
+				tan1[i1] += sdir;
+				tan1[i2] += sdir;
+				tan1[i3] += sdir;
+
+				tan2[i1] += tdir;
+				tan2[i2] += tdir;
+				tan2[i3] += tdir;
+
+			}
+
+			for (long a = 0; a < vertecies.size(); a++)
+			{
+				glm::vec3 n = vertecies[a].normal;
+				glm::vec3 t = tan1[a];
+
+				glm::vec3 v = glm::normalize((t - n * glm::dot(n, t)));
+
+				if (glm::dot(glm::cross(n, t), tan2[a]) < 0.0f)
+				{
+					v *= -1;
+				}
+
+				vertecies[a].tangent = v;
+			}
+
 			Mesh* m = new Mesh(m_materials[paiMesh->mMaterialIndex], & vertecies[0], v_count, &faces[0], i_count * 3);
+
+			delete tan1;
+			delete tan2;
 
 			return m;
 

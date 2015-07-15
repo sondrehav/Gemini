@@ -13,8 +13,8 @@
 #include "scene.h"
 #include <time.h>
 
-#define WIDTH 1280
-#define HEIGHT 720
+#define WIDTH 1200
+#define HEIGHT 800
 
 #define CLIP_NEAR 50.0f
 #define CLIP_FAR 100000.0f
@@ -72,7 +72,9 @@ int main(int argc, char** argv){
 
 	bool light_follow = true;
 
-	float lightSpread = 1000.0f;
+	float lightSpread = 1.0f;
+	float lightStrength = 1.0f;
+	float shine = 1.0f;
 
 	while (!display.isCloseRequested()){
 
@@ -101,6 +103,13 @@ int main(int argc, char** argv){
 		if (display.isKeyHold(SDLK_F11)) display.maximizeWindow();
 
 		display.getMouseSpeed(mouseX, mouseY);
+		if (mouseX != 0.0 || mouseY != 0.0)
+		{
+			Shader::upload3fToAll("viewDirection", 
+				camera->front().x,
+				camera->front().y,
+				camera->front().z);
+		}
 
 		camera->m_rotation.x += mouseY * mouseSens;
 		camera->m_rotation.y += mouseX * mouseSens;
@@ -112,14 +121,35 @@ int main(int argc, char** argv){
 		if (display.isKeyHold(SDLK_q)) camera->moveUp(speed);
 		if (display.isKeyHold(SDLK_e)) camera->moveUp(-speed);
 
-		if (display.isKeyHold(SDLK_PLUS)){
+		if (display.isKeyHold(SDLK_3)){
 			lightSpread *= 1.1f;
-			Shader::upload1fToAll("light_spread", lightSpread);
+			Shader::upload1fToAll("lightSpread", lightSpread);
 		}
-		if (display.isKeyHold(SDLK_MINUS)){
-			if (lightSpread > 20.0f)
+		if (display.isKeyHold(SDLK_4)){
+			if (lightSpread > 0.1f)
 				lightSpread /= 1.1f;
-			Shader::upload1fToAll("light_spread", lightSpread);
+			Shader::upload1fToAll("lightSpread", lightSpread);
+		}
+
+		if (display.isKeyHold(SDLK_5)){
+			lightStrength *= 1.1f;
+			Shader::upload1fToAll("lightStrength", lightStrength);
+		}
+		if (display.isKeyHold(SDLK_6)){
+			if (lightStrength > 0.1f)
+				lightStrength /= 1.1f;
+			Shader::upload1fToAll("lightStrength", lightStrength);
+		}
+
+		if (display.isKeyHold(SDLK_1)){
+			shine *= 1.1f;
+			Shader::upload1fToAll("shine", shine);
+		}
+
+		if (display.isKeyHold(SDLK_2)){
+			if (shine > 0.1f)
+				shine /= 1.1f;
+			Shader::upload1fToAll("shine", shine);
 		}
 
 		if (display.isKeyHold(SDLK_l)){
@@ -127,7 +157,10 @@ int main(int argc, char** argv){
 		}
 
 		if (light_follow)
+		{
 			light_position = camera->m_position;
+			Shader::upload3fToAll("lightPosition", -light_position.x, -light_position.y, -light_position.z);
+		}
 
 		camera->update();
 		view = camera->getViewMatrix();
@@ -146,7 +179,7 @@ int main(int argc, char** argv){
 			projection = glm::perspective(70.0f, aspect, CLIP_NEAR, CLIP_FAR);
 		}
 		
-		scene->render(projection, camera->getViewMatrix(), -light_position, -camera->front());
+		scene->render(projection, camera->getViewMatrix());
 
 #if 0
 		shader.SetUniformMat4("md_matrix", glm::mat4x4(1.0f));

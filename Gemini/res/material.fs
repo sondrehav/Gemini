@@ -9,45 +9,50 @@ uniform sampler2D specularHighlightMap;
 uniform sampler2D normalMap;
 uniform sampler2D alphaMap;
 
-in vec3 dif_test;
+in DATA
+{
+	vec3 lightDirection;
+	float lightSpread;
+	float lightStrength;
 
-in vec3 pass_diffuseColor;
-in vec3 pass_ambientColor;
-in vec3 pass_specularColor;
+	vec3 viewDirection;
 
-in float transparency;
+	vec3 difColor;
+	vec3 ambColor;
+	vec3 specColor;
+	float transp;
+	float shine;
 
-in vec2 pass_texcoord;
-in vec3 pass_normal;
-in vec3 pass_light;
-in vec3 pass_viewDir;
-
-in float pass_light_spread;
+	vec3 normal;
+	vec3 tangent;
+	vec3 binormal;
+	vec2 uv;
+} fs;
 
 void main()
 {
 
-	vec4 c_dif = texture2D(diffuseMap, pass_texcoord);
-	vec4 c_amb = texture2D(ambientMap, pass_texcoord);
-	vec4 c_spec = texture2D(specularMap, pass_texcoord);
-	vec4 c_sHigh = texture2D(specularHighlightMap, pass_texcoord);
-	vec4 c_norm = texture2D(normalMap, pass_texcoord);
-	vec4 c_alpha = texture2D(alphaMap, pass_texcoord);
-
-	vec3 n_map = vec3(c_norm.rg * 2.0 - 1.0, c_norm.b - 1.0) * -1.0;
-	vec3 norm = pass_normal + n_map;
-
-	vec3 reflection = reflect(-normalize(dif_test), norm);
-	float spec = clamp(pow(max(dot(reflection, pass_viewDir), 0.0), 3.0),0.0,1.0) * 0.3;
-	float diffuse = clamp(dot(norm, -normalize(dif_test)), 0.0, 1.0) * 0.8 + 0.2;
+	vec4 c_dif = texture2D(diffuseMap, fs.uv);
+	vec4 c_amb = texture2D(ambientMap, fs.uv);
+	vec4 c_spec = texture2D(specularMap, fs.uv);
+	vec4 c_sHigh = texture2D(specularHighlightMap, fs.uv);
+	vec4 c_norm = texture2D(normalMap, fs.uv) * 2.0 - 1.0;
+	c_norm.xy *= -1.0;
+	vec4 c_alpha = texture2D(alphaMap, fs.uv);
 
 	if(c_alpha.r < 0.5)
 	{
 		discard;
 	}
 
-	float d = pass_light_spread / (pow(length(dif_test), 2.0) + pass_light_spread);
+	vec3 norm = mat3x3(fs.tangent, fs.binormal, fs.normal) * c_norm.xyz;
 
-	color = vec4(diffuse * c_dif.xyz * d + spec * c_spec.xyz + vec3(0.025,0.025,0.05), 1.0);
+	float diffuseStrength = fs.lightStrength * fs.lightSpread / (pow(length(fs.lightDirection), 2.0) + fs.lightSpread * fs.lightSpread);
+	diffuseStrength *= max(dot(fs.lightDirection, norm), 0.0);
+
+	vec3 refl = reflect(normalize(-fs.lightDirection), norm * vec3(1.0, -1.0, 1.0));
+	float spec = pow(dot(normalize(fs.viewDirection), refl), fs.shine);
+
+	color = vec4((c_dif.xyz + spec * c_spec.xyz) * diffuseStrength, 1.0);
 	
 }

@@ -80,8 +80,12 @@ namespace gemini { namespace util {
 
 				if (keycode >= 256)
 					std::cerr << "ERROR: Keycode '" << keycode << "' to high. Max is 256." << std::endl;
-				else
+				else{
 					m_keystate[keycode] = true;
+					if (keycode == SDL_GetScancodeFromKey(SDLK_p)){
+						SDL_SetWindowFullscreen(m_window, SDL_TRUE);
+					}
+				}
 				break; }
 			case SDL_KEYUP: {
 				unsigned int keycode = SDL_GetScancodeFromKey(e.key.keysym.sym);

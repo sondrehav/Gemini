@@ -33,7 +33,7 @@ namespace gemini { namespace graphics{
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, normal))); // Normal
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, color))); // Color
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, tangent))); // Tangent
 		glEnableVertexAttribArray(3);
 		glVertexAttribPointer(3, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)(offsetof(Vertex, texcoord))); // Texcoord
 
@@ -53,7 +53,7 @@ namespace gemini { namespace graphics{
 
 	}
 
-	void Mesh::render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix, const glm::vec3 lightDir, const glm::vec3 viewDir){
+	void Mesh::render(const glm::mat4x4 &pr_matrix, const glm::mat4x4 &vw_matrix){
 
 		md_matrix = glm::mat4x4(1.0f);
 		md_matrix = glm::translate(md_matrix, m_position);
@@ -62,7 +62,7 @@ namespace gemini { namespace graphics{
 		md_matrix = glm::rotate(md_matrix, m_rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 		md_matrix = glm::scale(md_matrix, m_size);
 
-		m_material->use(pr_matrix, vw_matrix, md_matrix, lightDir, viewDir);
+		m_material->use(pr_matrix, vw_matrix, md_matrix);
 
 		glBindVertexArray(m_VAO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);

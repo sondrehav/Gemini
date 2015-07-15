@@ -28,6 +28,7 @@ namespace gemini {
 			inline std::string fragPath(){ return m_fragPath; }
 
 			static void upload1fToAll(std::string uniform, GLfloat value);
+			static void upload3fToAll(std::string uniform, float a, float b, float c);
 
 		private:
 			std::string m_vertPath;

@@ -118,6 +118,19 @@ namespace gemini { namespace graphics {
 		}
 	}
 
+	void Shader::upload3fToAll(std::string uniform, float a, float b, float c)
+	{
+		for (int i = 0; i < allShaders.size(); i++)
+		{
+			Shader* s = allShaders[i];
+			s->Bind();
+			if (s->hasUniformLocation(uniform))
+			{
+				s->SetUniform3f(uniform, a, b, c);
+			}
+		}
+	}
+
 } }
 
 static GLuint CreateShader(const std::string &source, GLenum shaderType){
@@ -147,5 +160,6 @@ static void CheckShaderError(GLuint shader, GLuint flag, bool isProgram, const c
 		else
 			glGetShaderInfoLog(shader, sizeof(errorlog), NULL, errorlog);
 		std::cerr << errorMessage << "'" << errorlog << "'" << std::endl;
+		system("pause");
 	}
 }
