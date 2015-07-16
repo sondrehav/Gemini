@@ -13,9 +13,10 @@ in DATA
 {
 	vec3 lightDirection;
 	float lightSpread;
-	float lightStrength;
+	float specStrength;
 
 	vec3 viewDirection;
+	vec3 viewPosition;
 
 	vec3 difColor;
 	vec3 ambColor;
@@ -47,12 +48,12 @@ void main()
 
 	vec3 norm = mat3x3(fs.tangent, fs.binormal, fs.normal) * c_norm.xyz;
 
-	float diffuseStrength = fs.lightStrength * fs.lightSpread / (pow(length(fs.lightDirection), 2.0) + fs.lightSpread * fs.lightSpread);
-	diffuseStrength *= max(dot(fs.lightDirection, norm), 0.0);
+	float diffuseStrength = fs.lightSpread / (pow(length(fs.lightDirection), 2.0) + fs.lightSpread);
+	float ds = diffuseStrength * max(dot(normalize(fs.lightDirection), norm), 0.0);
 
-	vec3 refl = reflect(normalize(-fs.lightDirection), norm * vec3(1.0, -1.0, 1.0));
-	float spec = pow(dot(normalize(fs.viewDirection), refl), fs.shine);
+	vec3 refl = reflect(fs.lightDirection, norm * vec3(1.0, -1.0, 1.0));
+	float spec = pow(max(dot(normalize(-fs.viewDirection), normalize(refl)), 0.0), fs.shine) * fs.specStrength * diffuseStrength;
 
-	color = vec4((c_dif.xyz + spec * c_spec.xyz) * diffuseStrength, 1.0);
+	color = vec4(c_dif.xyz * ds + c_spec.xyz * spec + vec3(0.025,0.025,0.01), 1.0);
 	
 }

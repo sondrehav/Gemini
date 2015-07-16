@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <glm/trigonometric.hpp>
 #include <GL\glew.h>
 #include "mesh.h"
 #include <string>
@@ -16,10 +17,10 @@
 #define WIDTH 1200
 #define HEIGHT 800
 
-#define CLIP_NEAR 50.0f
-#define CLIP_FAR 100000.0f
+#define CLIP_NEAR 0.1f
+#define CLIP_FAR 1000.0f
 
-#define CAMERA_SPEED 10.0f
+#define CAMERA_SPEED 0.04f
 
 #define FRAME_RATE_CAP 60
 
@@ -71,10 +72,15 @@ int main(int argc, char** argv){
 	unsigned int frameCount = 0;
 
 	bool light_follow = true;
+	bool hasMoved = false;
 
-	float lightSpread = 1.0f;
-	float lightStrength = 1.0f;
-	float shine = 1.0f;
+	float lightSpread = 1000.0f;
+	float specStrength = 1.0f;
+	float shine = 10.0f;
+
+	Shader::upload1fToAll("lightSpread", lightSpread);
+	Shader::upload1fToAll("specStrength", specStrength);
+	Shader::upload1fToAll("shine", shine);
 
 	while (!display.isCloseRequested()){
 
@@ -103,52 +109,59 @@ int main(int argc, char** argv){
 		if (display.isKeyHold(SDLK_F11)) display.maximizeWindow();
 
 		display.getMouseSpeed(mouseX, mouseY);
-		if (mouseX != 0.0 || mouseY != 0.0)
+
+		camera->m_rotation.x -= mouseY * mouseSens;
+		camera->m_rotation.y -= mouseX * mouseSens;
+		if (camera->m_rotation.x < glm::radians(-85.0f))
+			camera->m_rotation.x = glm::radians(-85.0f);
+		if (camera->m_rotation.x > glm::radians(85.0f))
+			camera->m_rotation.x = glm::radians(85.0f);
+
+		if (display.isKeyHold(SDLK_w)) camera->moveFront(speed); hasMoved = true;
+		if (display.isKeyHold(SDLK_a)) camera->moveRight(-speed); hasMoved = true;
+		if (display.isKeyHold(SDLK_s)) camera->moveFront(-speed); hasMoved = true;
+		if (display.isKeyHold(SDLK_d)) camera->moveRight(speed); hasMoved = true;
+		if (display.isKeyHold(SDLK_q)) camera->moveUp(speed); hasMoved = true;
+		if (display.isKeyHold(SDLK_e)) camera->moveUp(-speed); hasMoved = true;
+
+		if (hasMoved)
 		{
-			Shader::upload3fToAll("viewDirection", 
-				camera->front().x,
-				camera->front().y,
-				camera->front().z);
+			hasMoved = false;
+			Shader::upload3fToAll("viewPosition",
+				camera->m_position.x,
+				camera->m_position.y,
+				camera->m_position.z);
 		}
 
-		camera->m_rotation.x += mouseY * mouseSens;
-		camera->m_rotation.y += mouseX * mouseSens;
-
-		if (display.isKeyHold(SDLK_w)) camera->moveFront(speed);
-		if (display.isKeyHold(SDLK_a)) camera->moveRight(-speed);
-		if (display.isKeyHold(SDLK_s)) camera->moveFront(-speed);
-		if (display.isKeyHold(SDLK_d)) camera->moveRight(speed);
-		if (display.isKeyHold(SDLK_q)) camera->moveUp(speed);
-		if (display.isKeyHold(SDLK_e)) camera->moveUp(-speed);
-
 		if (display.isKeyHold(SDLK_3)){
-			lightSpread *= 1.1f;
+			lightSpread *= 1.01f;
 			Shader::upload1fToAll("lightSpread", lightSpread);
 		}
 		if (display.isKeyHold(SDLK_4)){
-			if (lightSpread > 0.1f)
-				lightSpread /= 1.1f;
+			//if (lightSpread > 0.1f)
+				lightSpread /= 1.01f;
 			Shader::upload1fToAll("lightSpread", lightSpread);
 		}
 
 		if (display.isKeyHold(SDLK_5)){
-			lightStrength *= 1.1f;
-			Shader::upload1fToAll("lightStrength", lightStrength);
+			if (specStrength < 2.0f)
+				specStrength += 0.01f;
+			Shader::upload1fToAll("specStrength", specStrength);
 		}
 		if (display.isKeyHold(SDLK_6)){
-			if (lightStrength > 0.1f)
-				lightStrength /= 1.1f;
-			Shader::upload1fToAll("lightStrength", lightStrength);
+			if (specStrength > 0.0f)
+				specStrength -= 0.01f;
+			Shader::upload1fToAll("specStrength", specStrength);
 		}
 
 		if (display.isKeyHold(SDLK_1)){
-			shine *= 1.1f;
+			shine *= 1.01f;
 			Shader::upload1fToAll("shine", shine);
 		}
 
 		if (display.isKeyHold(SDLK_2)){
-			if (shine > 0.1f)
-				shine /= 1.1f;
+			//if (shine > 0.1f)
+				shine /= 1.01f;
 			Shader::upload1fToAll("shine", shine);
 		}
 
@@ -159,7 +172,7 @@ int main(int argc, char** argv){
 		if (light_follow)
 		{
 			light_position = camera->m_position;
-			Shader::upload3fToAll("lightPosition", -light_position.x, -light_position.y, -light_position.z);
+			Shader::upload3fToAll("lightPosition", light_position.x, light_position.y, light_position.z);
 		}
 
 		camera->update();

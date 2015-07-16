@@ -9,9 +9,10 @@ out DATA
 {
 	vec3 lightDirection;
 	float lightSpread;
-	float lightStrength;
+	float specStrength;
 
 	vec3 viewDirection;
+	vec3 viewPosition;
 
 	vec3 difColor;
 	vec3 ambColor;
@@ -30,8 +31,8 @@ uniform mat4 vw_matrix = mat4(1.0);
 uniform mat4 md_matrix = mat4(1.0);
 uniform vec3 lightPosition;
 uniform float lightSpread;
-uniform float lightStrength;
-uniform vec3 viewDirection;
+uniform float specStrength;
+uniform vec3 viewPosition;
 uniform vec3 diffuseColor;
 uniform vec3 ambientColor;
 uniform vec3 specularColor;
@@ -42,8 +43,9 @@ void main()
 {
 	vs.lightDirection = lightPosition - (md_matrix * vec4(in_vertex, 1.0)).xyz;
 	vs.lightSpread = lightSpread;
-	vs.viewDirection = viewDirection;
-	vs.lightStrength = lightStrength;
+	vs.viewPosition = viewPosition;
+	vs.viewDirection = viewPosition - (md_matrix * vec4(in_vertex, 1.0)).xyz;
+	vs.specStrength = specStrength;
 	vs.difColor = diffuseColor;
 	vs.ambColor = ambientColor;
 	vs.specColor = specularColor;

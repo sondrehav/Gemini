@@ -28,6 +28,7 @@ namespace gemini {
 
 		bool Scene::loadScene(const std::string &filename)
 		{
+			std::cout << "Loading scene '" << filename << "'." << std::endl;
 
 			std::string directory;
 			const size_t last_slash_idx = filename.rfind('/');
@@ -152,12 +153,11 @@ namespace gemini {
 			{
 				aiMesh* paiMesh = p_scene->mMeshes[i];
 				m_meshes[i] = initMesh(paiMesh);
-				std::cout << "Loaded mesh '" << &(paiMesh->mName) << "'." << std::endl;
 				unsigned int vcount = p_scene->mMeshes[i]->mNumVertices;
 				unsigned int fcount = p_scene->mMeshes[i]->mNumFaces;
 			}
 
-			std::cout << "Loaded scene '" << filename << "'." << std::endl;
+			std::cout << "Loading scene complete." << std::endl;
 
 			return true;
 
